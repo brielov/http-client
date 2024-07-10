@@ -2,9 +2,9 @@ import type { output, ZodType } from "zod";
 import {
 	failure,
 	success,
+	type HttpInit,
 	type HttpResponse,
 	type JSONValue,
-	type RequestOptions,
 } from "./common";
 import { type HttpError, ParseBodyError, ValidationError } from "./http-error";
 import { httpRequest } from "./http-request";
@@ -15,16 +15,16 @@ import type { RequestBuilder } from "./request-builder";
  */
 export class ResponseBuilder {
 	#builder: RequestBuilder;
-	#options: RequestOptions;
+	#init: HttpInit;
 
 	/**
 	 * Creates an instance of ResponseBuilder.
 	 * @param builder The RequestBuilder instance used to create the request.
-	 * @param options The request options, including retries, retry delay, and timeout.
+	 * @param init The request options, including retries, retry delay, and timeout.
 	 */
-	constructor(builder: RequestBuilder, options: RequestOptions) {
+	constructor(builder: RequestBuilder, init: HttpInit) {
 		this.#builder = builder;
-		this.#options = options;
+		this.#init = init;
 	}
 
 	/**
@@ -54,10 +54,11 @@ export class ResponseBuilder {
 	async response(): HttpResponse<Response> {
 		const url = this.#builder.url;
 		const init = this.#builder.toRequestInit();
-		return httpRequest(url, init, {
-			retries: this.#options.retries,
-			retryDelay: this.#options.retryDelay,
-			timeout: this.#options.timeout,
+		return httpRequest(url, {
+			...init,
+			retries: this.#init.retries,
+			retryDelay: this.#init.retryDelay,
+			timeout: this.#init.timeout,
 		});
 	}
 

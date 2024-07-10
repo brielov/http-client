@@ -1,10 +1,5 @@
 import type { output, ZodType } from "zod";
-import type {
-	HttpMethod,
-	HttpResponse,
-	JSONValue,
-	RequestOptions,
-} from "./common";
+import type { HttpInit, HttpMethod, HttpResponse, JSONValue } from "./common";
 import { ResponseBuilder } from "./response-builder";
 
 export type RequestBuilderWithoutBody = Omit<RequestBuilder, "body">;
@@ -18,20 +13,20 @@ export class RequestBuilder {
 	#body?: BodyInit;
 	#headers: Headers;
 	#signal?: AbortSignal;
-	#options: RequestOptions;
+	#init: HttpInit;
 	#setHeaders?: (headers: Headers) => void;
 
 	/**
 	 * Creates an instance of RequestBuilder.
 	 * @param method The HTTP method for the request (e.g., GET, POST).
 	 * @param url The URL for the request.
-	 * @param options The request options, including headers, retries, etc.
+	 * @param init The request options, including headers, retries, etc.
 	 */
-	constructor(method: HttpMethod, url: URL, options: RequestOptions) {
-		const { headers, ...rest } = options;
+	constructor(method: HttpMethod, url: URL, init: HttpInit) {
+		const { headers, ...rest } = init;
 
 		this.#method = method;
-		this.#options = rest;
+		this.#init = rest;
 		this.#url = url;
 
 		if (typeof headers === "function") {
@@ -116,7 +111,7 @@ export class RequestBuilder {
 	 * @returns A ResponseBuilder instance for executing the request.
 	 */
 	build(): ResponseBuilder {
-		return new ResponseBuilder(this, { ...this.#options });
+		return new ResponseBuilder(this, this.#init);
 	}
 
 	/**
@@ -125,7 +120,7 @@ export class RequestBuilder {
 	 * @returns The current instance of RequestBuilder.
 	 */
 	cache(value: RequestCache): this {
-		this.#options.cache = value;
+		this.#init.cache = value;
 		return this;
 	}
 
@@ -135,7 +130,7 @@ export class RequestBuilder {
 	 * @returns The current instance of RequestBuilder.
 	 */
 	credentials(value: RequestCredentials): this {
-		this.#options.credentials = value;
+		this.#init.credentials = value;
 		return this;
 	}
 
@@ -170,7 +165,7 @@ export class RequestBuilder {
 	 * @returns The current instance of RequestBuilder.
 	 */
 	integrity(value: string): this {
-		this.#options.integrity = value;
+		this.#init.integrity = value;
 		return this;
 	}
 
@@ -189,7 +184,7 @@ export class RequestBuilder {
 	 * @returns The current instance of RequestBuilder.
 	 */
 	keepalive(value = true): this {
-		this.#options.keepalive = value;
+		this.#init.keepalive = value;
 		return this;
 	}
 
@@ -199,7 +194,7 @@ export class RequestBuilder {
 	 * @returns The current instance of RequestBuilder.
 	 */
 	mode(value: RequestMode): this {
-		this.#options.mode = value;
+		this.#init.mode = value;
 		return this;
 	}
 
@@ -226,7 +221,7 @@ export class RequestBuilder {
 	 * @returns The current instance of RequestBuilder.
 	 */
 	priority(value: RequestPriority): this {
-		this.#options.priority = value;
+		this.#init.priority = value;
 		return this;
 	}
 
@@ -236,7 +231,7 @@ export class RequestBuilder {
 	 * @returns The current instance of RequestBuilder.
 	 */
 	redirect(value: RequestRedirect = "follow"): this {
-		this.#options.redirect = value;
+		this.#init.redirect = value;
 		return this;
 	}
 
@@ -246,7 +241,7 @@ export class RequestBuilder {
 	 * @returns The current instance of RequestBuilder.
 	 */
 	referrerPolicy(value: ReferrerPolicy): this {
-		this.#options.referrerPolicy = value;
+		this.#init.referrerPolicy = value;
 		return this;
 	}
 
@@ -256,7 +251,7 @@ export class RequestBuilder {
 	 * @returns The current instance of RequestBuilder.
 	 */
 	referrer(value: string): this {
-		this.#options.referrer = value;
+		this.#init.referrer = value;
 		return this;
 	}
 
@@ -274,7 +269,7 @@ export class RequestBuilder {
 	 * @returns The current instance of RequestBuilder.
 	 */
 	retries(value: number): this {
-		this.#options.retries = value;
+		this.#init.retries = value;
 		return this;
 	}
 
@@ -284,7 +279,7 @@ export class RequestBuilder {
 	 * @returns The current instance of RequestBuilder.
 	 */
 	retryDelay(value: number): this {
-		this.#options.retryDelay = value;
+		this.#init.retryDelay = value;
 		return this;
 	}
 
@@ -324,7 +319,7 @@ export class RequestBuilder {
 	 * @returns The current instance of RequestBuilder.
 	 */
 	timeout(value: number): this {
-		this.#options.timeout = value;
+		this.#init.timeout = value;
 		return this;
 	}
 
@@ -358,7 +353,7 @@ export class RequestBuilder {
 			redirect,
 			referrer,
 			referrerPolicy,
-		} = this.#options;
+		} = this.#init;
 
 		this.#setHeaders?.(headers);
 

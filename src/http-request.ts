@@ -1,4 +1,9 @@
-import { failure, success, type HttpResponse } from "./common";
+import {
+	failure,
+	success,
+	type HttpRequestInit,
+	type HttpResponse,
+} from "./common";
 import {
 	AbortError,
 	BadRequestError,
@@ -33,15 +38,6 @@ const DEFAULT_TIMEOUT = 10_000;
 const TIMEOUT_MESSAGE = "Request timed out";
 
 /**
- * Options for the HTTP request, including retries, retry delay, and timeout.
- */
-interface Options {
-	retries?: number;
-	retryDelay?: number;
-	timeout?: number;
-}
-
-/**
  * Performs an HTTP request with the specified options and handles retries and timeouts.
  *
  * @param url - The URL to which the request is made.
@@ -52,24 +48,24 @@ interface Options {
  */
 export async function httpRequest(
 	url: URL,
-	init: RequestInit,
-	options: Options,
+	init: HttpRequestInit,
 	retryCount = 0,
 ): HttpResponse<Response> {
 	const {
 		retries = DEFAULT_RETRIES,
 		retryDelay = DEFAULT_RETRY_DELAY,
 		timeout = DEFAULT_TIMEOUT,
-	} = options;
+		...requestInit
+	} = init;
 
 	// Collect signals to manage request abortion
 	const signals: AbortSignal[] = [];
-	if (init.signal) {
-		signals.push(init.signal);
+	if (requestInit.signal) {
+		signals.push(requestInit.signal);
 	}
 	const controller = new AbortController();
 	signals.push(controller.signal);
-	init.signal = mergeSignals(signals);
+	requestInit.signal = mergeSignals(signals);
 
 	// Set up a timeout to abort the request if it takes too long
 	const timeoutId = setTimeout(
@@ -79,7 +75,7 @@ export async function httpRequest(
 
 	try {
 		// Perform the HTTP request
-		const response = await fetch(url, init);
+		const response = await fetch(url, requestInit);
 
 		// Handle success fetch but unsuccessfull server response
 		if (!response.ok) {
@@ -115,7 +111,7 @@ export async function httpRequest(
 				// Retry the request if retries are available
 				if (retryCount < retries) {
 					await delay(retryDelay * 2 ** retryCount);
-					return await httpRequest(url, init, options, retryCount + 1);
+					return await httpRequest(url, init, retryCount + 1);
 				}
 				// Return timeout error if no retries are left
 				return failure(new TimeoutError(TIMEOUT_MESSAGE));
@@ -134,7 +130,7 @@ export async function httpRequest(
 			// Retry the request if retries are available
 			if (retryCount < retries) {
 				await delay(retryDelay * 2 ** retryCount);
-				return await httpRequest(url, init, options, retryCount + 1);
+				return await httpRequest(url, init, retryCount + 1);
 			}
 			// Return connection error if no retries are left
 			return failure(new ConnectionError(err.message, { cause: err }));

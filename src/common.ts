@@ -11,25 +11,18 @@ export type JSONValue =
 	| { [x: string]: JSONValue }
 	| Array<JSONValue>;
 
-export interface HttpOptions {
+export interface HttpInit extends Omit<RequestInit, "headers"> {
 	baseUrl?: string;
-	cache?: RequestCache;
-	credentials?: RequestCredentials;
 	fetch?: Fetch;
 	headers?: HeadersInit | ((headers: Headers) => void);
-	integrity?: string;
-	keepalive?: boolean;
-	mode?: RequestMode;
-	priority?: RequestPriority;
-	redirect?: RequestRedirect;
-	referrerPolicy?: ReferrerPolicy;
-	referrer?: string;
 	retries?: number;
 	retryDelay?: number;
 	timeout?: number;
 }
 
-export type RequestOptions = Omit<HttpOptions, "baseUrl">;
+export interface HttpRequestInit extends Omit<HttpInit, "baseUrl" | "headers"> {
+	headers?: HeadersInit;
+}
 
 export type Success<T> = { readonly success: true; readonly data: T };
 export type Failure<E> = { readonly success: false; readonly error: E };

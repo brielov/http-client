@@ -1,4 +1,4 @@
-import type { HttpMethod, HttpOptions } from "./common";
+import type { HttpInit, HttpMethod } from "./common";
 import {
 	RequestBuilder,
 	type RequestBuilderWithoutBody,
@@ -11,7 +11,7 @@ export * from "./http-error";
  * You can use this class to configure default options and create request builders for various HTTP methods.
  */
 export class Http {
-	#options: HttpOptions;
+	#options: HttpInit;
 
 	/**
 	 * A shared instance of the Http class with default options.
@@ -23,7 +23,7 @@ export class Http {
 	 * Creates a new Http instance with optional default options.
 	 * @param {HttpOptions} [options] - Optional default options for all requests made using this instance.
 	 */
-	constructor(options?: HttpOptions) {
+	constructor(options?: HttpInit) {
 		this.#options = options ?? {};
 	}
 
