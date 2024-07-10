@@ -7,6 +7,8 @@ import {
 export class Http {
 	#options: HttpOptions;
 
+	static shared: Http = new Http();
+
 	constructor(options?: HttpOptions) {
 		this.#options = options ?? {};
 	}
@@ -15,8 +17,8 @@ export class Http {
 		method: HttpMethod,
 		pathnames: readonly (string | number)[],
 	): RequestBuilder {
-		const pathname = buildPath(pathnames);
 		const { baseUrl, ...options } = this.#options;
+		const pathname = buildPath(pathnames);
 		const url = new URL(pathname, baseUrl);
 		return new RequestBuilder(method, url, options);
 	}
@@ -46,25 +48,25 @@ export class Http {
 	static get(
 		...pathnames: readonly (string | number)[]
 	): RequestBuilderWithoutBody {
-		return new Http().get(...pathnames);
+		return Http.shared.get(...pathnames);
 	}
 
 	static post(...pathnames: readonly (string | number)[]): RequestBuilder {
-		return new Http().post(...pathnames);
+		return Http.shared.post(...pathnames);
 	}
 
 	static put(...pathnames: readonly (string | number)[]): RequestBuilder {
-		return new Http().put(...pathnames);
+		return Http.shared.put(...pathnames);
 	}
 
 	static patch(...pathnames: readonly (string | number)[]): RequestBuilder {
-		return new Http().patch(...pathnames);
+		return Http.shared.patch(...pathnames);
 	}
 
 	static delete(
 		...pathnames: readonly (string | number)[]
 	): RequestBuilderWithoutBody {
-		return new Http().delete(...pathnames);
+		return Http.shared.delete(...pathnames);
 	}
 }
 
