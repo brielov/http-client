@@ -193,6 +193,11 @@ export class RequestBuilder {
 		return this.build().text();
 	}
 
+	timeout(value: number): this {
+		this.#options.timeout = value;
+		return this;
+	}
+
 	toRequest(): Request {
 		const url = this.#url;
 		const init = this.toRequestInit();
