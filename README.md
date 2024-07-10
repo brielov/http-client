@@ -153,6 +153,7 @@ This library provides a comprehensive error handling system, ensuring that you c
 
 The error hierarchy is structured as follows:
 
+```
 HttpError
 ├── ServerError
 │ ├── InternalServerError
@@ -168,7 +169,7 @@ HttpError
 │ ├── AbortError
 │ ├── RetryError
 │ └── ConnectionError
-
+```
 
 ### Handling Different Types of Errors
 
