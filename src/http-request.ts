@@ -12,17 +12,44 @@ import {
 	UnauthorizedError,
 } from "./http-error";
 
+/**
+ * Default number of retries for the HTTP request.
+ */
 const DEFAULT_RETRIES = 0;
+
+/**
+ * Default delay between retries in milliseconds.
+ */
 const DEFAULT_RETRY_DELAY = 500;
+
+/**
+ * Default timeout for the HTTP request in milliseconds.
+ */
 const DEFAULT_TIMEOUT = 10_000;
+
+/**
+ * Default timeout message.
+ */
 const TIMEOUT_MESSAGE = "Request timed out";
 
+/**
+ * Options for the HTTP request, including retries, retry delay, and timeout.
+ */
 interface Options {
 	retries?: number;
 	retryDelay?: number;
 	timeout?: number;
 }
 
+/**
+ * Performs an HTTP request with the specified options and handles retries and timeouts.
+ *
+ * @param url - The URL to which the request is made.
+ * @param init - The request initialization options.
+ * @param options - The options for retries, retry delay, and timeout.
+ * @param retryCount - The current retry count (used internally for recursive retries).
+ * @returns A promise that resolves to an HttpResponse object containing the response or an error.
+ */
 export async function httpRequest(
 	url: URL,
 	init: RequestInit,
@@ -34,6 +61,8 @@ export async function httpRequest(
 		retryDelay = DEFAULT_RETRY_DELAY,
 		timeout = DEFAULT_TIMEOUT,
 	} = options;
+
+	// Collect signals to manage request abortion
 	const signals: AbortSignal[] = [];
 	if (init.signal) {
 		signals.push(init.signal);
@@ -42,12 +71,14 @@ export async function httpRequest(
 	signals.push(controller.signal);
 	init.signal = mergeSignals(signals);
 
+	// Set up a timeout to abort the request if it takes too long
 	const timeoutId = setTimeout(
 		() => controller.abort(TIMEOUT_MESSAGE),
 		timeout,
 	);
 
 	try {
+		// Perform the HTTP request
 		const response = await fetch(url, init);
 
 		// Handle success fetch but unsuccessfull server response
@@ -74,41 +105,55 @@ export async function httpRequest(
 					);
 			}
 		}
+		// Return the successful response
 		return success(response);
 	} catch (err) {
+		// Handle different types of errors
 		if (typeof err === "string") {
-			// The only type of error that comes out as `string` is one that comes from
-			// an abort controller with a reason, as far as I know.
-
+			// Handle abort errors (timeout or manual abort)
 			if (err.includes(TIMEOUT_MESSAGE)) {
+				// Retry the request if retries are available
 				if (retryCount < retries) {
 					await delay(retryDelay * 2 ** retryCount);
 					return await httpRequest(url, init, options, retryCount + 1);
 				}
+				// Return timeout error if no retries are left
 				return failure(new TimeoutError(TIMEOUT_MESSAGE));
 			}
 
+			// Return generic abort error
 			return failure(new AbortError(err));
 		}
 
 		if (err instanceof DOMException && err.name === "AbortError") {
+			// Return specific abort error for DOMException
 			return failure(new AbortError(err.message));
 		}
 
 		if (err instanceof TypeError && err.message.includes("Failed to fetch")) {
+			// Retry the request if retries are available
 			if (retryCount < retries) {
 				await delay(retryDelay * 2 ** retryCount);
 				return await httpRequest(url, init, options, retryCount + 1);
 			}
+			// Return connection error if no retries are left
 			return failure(new ConnectionError(err.message, { cause: err }));
 		}
 
+		// Return generic client error for unknown errors
 		return failure(new ClientError("Unknown error", { cause: err }));
 	} finally {
+		// Clear the timeout to prevent memory leaks
 		clearTimeout(timeoutId);
 	}
 }
 
+/**
+ * Merges multiple AbortSignals into a single AbortSignal.
+ *
+ * @param signals - An array of AbortSignals to merge.
+ * @returns A merged AbortSignal that represents all the input signals.
+ */
 function mergeSignals(signals: readonly AbortSignal[]): AbortSignal {
 	const controller = new AbortController();
 	const onAbort = () => controller.abort();
@@ -136,6 +181,12 @@ function mergeSignals(signals: readonly AbortSignal[]): AbortSignal {
 	return controller.signal;
 }
 
+/**
+ * Delays execution for a specified number of milliseconds.
+ *
+ * @param ms - The number of milliseconds to delay.
+ * @returns A promise that resolves after the specified delay.
+ */
 function delay(ms: number): Promise<void> {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }

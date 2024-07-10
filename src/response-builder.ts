@@ -6,19 +6,33 @@ import {
 	type JSONValue,
 	type RequestOptions,
 } from "./common";
-import { HttpError, ParseBodyError, ValidationError } from "./http-error";
+import { type HttpError, ParseBodyError, ValidationError } from "./http-error";
 import { httpRequest } from "./http-request";
 import type { RequestBuilder } from "./request-builder";
 
+/**
+ * The ResponseBuilder class handles the execution of HTTP requests and processes the responses.
+ */
 export class ResponseBuilder {
 	#builder: RequestBuilder;
 	#options: RequestOptions;
 
+	/**
+	 * Creates an instance of ResponseBuilder.
+	 * @param builder The RequestBuilder instance used to create the request.
+	 * @param options The request options, including retries, retry delay, and timeout.
+	 */
 	constructor(builder: RequestBuilder, options: RequestOptions) {
 		this.#builder = builder;
 		this.#options = options;
 	}
 
+	/**
+	 * Handles the response from an HTTP request.
+	 * @param parseResponse A function to parse the response.
+	 * @param parseError A function to parse errors.
+	 * @returns An HttpResponse containing the parsed response or an error.
+	 */
 	async #handleResponse<T>(
 		parseResponse: (response: Response) => Promise<T>,
 		parseError: (err: unknown) => HttpError,
@@ -33,6 +47,10 @@ export class ResponseBuilder {
 		}
 	}
 
+	/**
+	 * Executes the HTTP request and returns the Response object.
+	 * @returns An HttpResponse containing the Response object.
+	 */
 	async response(): HttpResponse<Response> {
 		const url = this.#builder.url;
 		const init = this.#builder.toRequestInit();
@@ -43,6 +61,10 @@ export class ResponseBuilder {
 		});
 	}
 
+	/**
+	 * Executes the HTTP request and returns the response body as an ArrayBuffer.
+	 * @returns An HttpResponse containing an ArrayBuffer.
+	 */
 	async arrayBuffer(): HttpResponse<ArrayBuffer> {
 		return this.#handleResponse(
 			(response) => response.arrayBuffer(),
@@ -53,6 +75,10 @@ export class ResponseBuilder {
 		);
 	}
 
+	/**
+	 * Executes the HTTP request and returns the response body as a Blob.
+	 * @returns An HttpResponse containing a Blob.
+	 */
 	async blob(): HttpResponse<Blob> {
 		return this.#handleResponse(
 			(response) => response.blob(),
@@ -61,6 +87,10 @@ export class ResponseBuilder {
 		);
 	}
 
+	/**
+	 * Executes the HTTP request and returns the response body as FormData.
+	 * @returns An HttpResponse containing FormData.
+	 */
 	async formData(): HttpResponse<FormData> {
 		return this.#handleResponse(
 			(response) => response.formData(),
@@ -69,6 +99,11 @@ export class ResponseBuilder {
 		);
 	}
 
+	/**
+	 * Executes the HTTP request, parses the response body as JSON, and validates it using the provided schema.
+	 * @param schema The Zod schema to validate the JSON response.
+	 * @returns An HttpResponse containing the validated JSON data.
+	 */
 	async json<T extends ZodType>(schema: T): HttpResponse<output<T>> {
 		const result = await this.unsafeJson();
 		if (!result.success) return result;
@@ -79,6 +114,10 @@ export class ResponseBuilder {
 		return success(parseResult.data);
 	}
 
+	/**
+	 * Executes the HTTP request and returns the response body as a ReadableStream.
+	 * @returns An HttpResponse containing a ReadableStream of Uint8Array.
+	 */
 	async stream(): HttpResponse<ReadableStream<Uint8Array>> {
 		const result = await this.response();
 		if (!result.success) return result;
@@ -93,6 +132,10 @@ export class ResponseBuilder {
 		return success(body);
 	}
 
+	/**
+	 * Executes the HTTP request and returns the response body as text.
+	 * @returns An HttpResponse containing the response text.
+	 */
 	async text(): HttpResponse<string> {
 		return this.#handleResponse(
 			(response) => response.text(),
@@ -101,6 +144,10 @@ export class ResponseBuilder {
 		);
 	}
 
+	/**
+	 * Executes the HTTP request and returns the raw JSON response body without validation.
+	 * @returns An HttpResponse containing the JSON response.
+	 */
 	async unsafeJson(): HttpResponse<JSONValue> {
 		return this.#handleResponse(
 			(response) => response.json(),
