@@ -4,6 +4,8 @@ import {
 	type RequestBuilderWithoutBody,
 } from "./request-builder";
 
+export * from "./http-error";
+
 export class Http {
 	#options: HttpOptions;
 
