@@ -3,6 +3,7 @@ import {
 	failure,
 	success,
 	type HttpResponse,
+	type JSONValue,
 	type RequestOptions,
 } from "./common";
 import { ParseBodyError, ValidationError } from "./http-error";
@@ -70,20 +71,13 @@ export class ResponseBuilder {
 	}
 
 	async json<T extends ZodType>(schema: T): HttpResponse<output<T>> {
-		const result = await this.response();
+		const result = await this.unsafeJson();
 		if (!result.success) return result;
-		try {
-			const json = await result.data.json();
-			const parseResult = await schema.safeParseAsync(json);
-			if (!parseResult.success) {
-				return failure(new ValidationError(parseResult.error));
-			}
-			return success(parseResult.data);
-		} catch (err) {
-			return failure(
-				new ParseBodyError("Failed to parse body as json", { cause: err }),
-			);
+		const parseResult = await schema.safeParseAsync(result.data);
+		if (!parseResult.success) {
+			return failure(new ValidationError(parseResult.error));
 		}
+		return success(parseResult.data);
 	}
 
 	async stream(): HttpResponse<ReadableStream<Uint8Array>> {
@@ -109,6 +103,19 @@ export class ResponseBuilder {
 		} catch (err) {
 			return failure(
 				new ParseBodyError("Failed to parse body as text", { cause: err }),
+			);
+		}
+	}
+
+	async unsafeJson(): HttpResponse<JSONValue> {
+		const result = await this.response();
+		if (!result.success) return result;
+		try {
+			const json = await result.data.json();
+			return success(json);
+		} catch (err) {
+			return failure(
+				new ParseBodyError("Failed to parse body as json", { cause: err }),
 			);
 		}
 	}

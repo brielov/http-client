@@ -240,4 +240,8 @@ export class RequestBuilder {
 			signal,
 		};
 	}
+
+	unsafeJson(): HttpResponse<JSONValue> {
+		return this.build().unsafeJson();
+	}
 }
