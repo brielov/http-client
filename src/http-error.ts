@@ -7,11 +7,10 @@ export class HttpError extends Error {
 export class ServerError extends HttpError {
 	name = "ServerError";
 
-	constructor(
-		message: string,
-		readonly response: Response,
-	) {
-		super(message);
+	constructor(readonly response: Response) {
+		super(
+			`Server responded with status ${response.status} ${response.statusText}`,
+		);
 	}
 }
 

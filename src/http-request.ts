@@ -82,24 +82,17 @@ export async function httpRequest(
 		if (!response.ok) {
 			switch (response.status) {
 				case 400:
-					return failure(new BadRequestError("Bad Request", response));
+					return failure(new BadRequestError(response));
 				case 401:
-					return failure(new UnauthorizedError("Unauthorized", response));
+					return failure(new UnauthorizedError(response));
 				case 403:
-					return failure(new ForbiddenError("Forbidden", response));
+					return failure(new ForbiddenError(response));
 				case 404:
-					return failure(new NotFoundError("Not Found", response));
+					return failure(new NotFoundError(response));
 				case 500:
-					return failure(
-						new InternalServerError("Internal Server Error", response),
-					);
+					return failure(new InternalServerError(response));
 				default:
-					return failure(
-						new ServerError(
-							`Server responded with status: ${response.status}`,
-							response,
-						),
-					);
+					return failure(new ServerError(response));
 			}
 		}
 		// Return the successful response
