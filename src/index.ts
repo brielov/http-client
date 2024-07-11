@@ -6,6 +6,8 @@ import {
 
 export * from "./http-error";
 
+export type { HttpInit, HttpResponse } from "./common";
+
 /**
  * The Http class provides a convenient interface for making HTTP requests.
  * You can use this class to configure default options and create request builders for various HTTP methods.

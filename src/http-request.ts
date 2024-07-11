@@ -55,6 +55,7 @@ export async function httpRequest(
 		retries = DEFAULT_RETRIES,
 		retryDelay = DEFAULT_RETRY_DELAY,
 		timeout = DEFAULT_TIMEOUT,
+		fetch = globalThis.fetch,
 		...requestInit
 	} = init;
 
