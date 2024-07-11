@@ -146,7 +146,20 @@ export async function httpRequest(
  */
 function mergeSignals(signals: readonly AbortSignal[]): AbortSignal {
 	const controller = new AbortController();
-	const onAbort = () => controller.abort();
+
+	const onAbort = (ev: Event) => {
+		if (ev.target instanceof AbortSignal) {
+			controller.abort(ev.target.reason);
+		} else {
+			controller.abort();
+		}
+	};
+
+	const cleanup = () => {
+		for (const signal of signals) {
+			signal.removeEventListener("abort", onAbort);
+		}
+	};
 
 	for (const signal of signals) {
 		if (signal.aborted) {
@@ -155,12 +168,6 @@ function mergeSignals(signals: readonly AbortSignal[]): AbortSignal {
 			signal.addEventListener("abort", onAbort, { once: true });
 		}
 	}
-
-	const cleanup = () => {
-		for (const signal of signals) {
-			signal.removeEventListener("abort", onAbort);
-		}
-	};
 
 	if (controller.signal.aborted) {
 		cleanup();
