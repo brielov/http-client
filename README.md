@@ -14,7 +14,11 @@ A powerful, flexible, and fluent HTTP client library for making HTTP requests in
 ## Installation
 
 ```bash
-npm install coming-soon
+npx jsr add @brielov/http
+yarn dlx jsr add @brielov/http
+pnpm dlx jsr add @brielov/http
+bunx jsr add @brielov/http
+deno add @brielov/http
 ```
 
 ## Basic Usage
@@ -24,7 +28,7 @@ npm install coming-soon
 The simplest way to use the library is via the singleton `Http` instance:
 
 ```ts
-import { Http } from 'coming-soon';
+import { Http } from '@brielov/http';
 
 const response = await Http.get('https://api.example.com/data').response();
 
@@ -41,7 +45,7 @@ if (response.success) {
 You can create a custom instance of the `Http` class with specific options:
 
 ```ts
-import { Http } from 'coming-soon';
+import { Http } from '@brielov/http';
 
 const customHttp = new Http({
     baseUrl: 'https://api.example.com',
@@ -67,7 +71,7 @@ if (response.success) {
 The library provides a fluent API for building requests:
 
 ```ts
-import { Http } from 'coming-soon';
+import { Http } from '@brielov/http';
 
 const response = await Http.post('https://api.example.com/data')
     .header('Authorization', 'Bearer your-token')
@@ -90,7 +94,7 @@ if (response.success) {
 Headers can be set dynamically or statically:
 
 ```ts
-import { Http } from 'coming-soon';
+import { Http } from '@brielov/http';
 
 // Static headers
 const response = await Http.get('https://api.example.com/data')
@@ -114,7 +118,7 @@ const dynamicResponse = await customHttp.get('data').response();
 The library supports various response types:
 
 ```ts
-import { Http } from 'coming-soon';
+import { Http } from '@brielov/http';
 import { z } from 'zod';
 
 const response = await Http.get('https://api.example.com/data').json(z.object({
@@ -180,7 +184,7 @@ When making HTTP requests, you might encounter various types of errors. Here's h
 Server errors occur when the server fails to process the request correctly. These include `InternalServerError`, `NotFoundError`, `BadRequestError`, `UnauthorizedError`, and `ForbiddenError`.
 
 ```ts
-import { Http, InternalServerError, NotFoundError, BadRequestError  } from 'coming-soon';
+import { Http, InternalServerError, NotFoundError, BadRequestError  } from '@brielov/http';
 
 const response = await Http.get('https://api.example.com/data').response();
 
@@ -202,7 +206,7 @@ if (!response.success) {
 Client errors occur when there is an issue with the client's request. This includes `ParseBodyError` and `ValidationError`.
 
 ```ts
-import { Http, ParseBodyError, ValidationError  } from 'coming-soon';
+import { Http, ParseBodyError, ValidationError  } from '@brielov/http';
 
 const response = await Http.get('https://api.example.com/data').json(someSchema);
 
@@ -222,7 +226,7 @@ if (!response.success) {
 Network errors occur when there are issues with the network request itself, such as timeouts, aborted requests, or connection issues. This includes `TimeoutError`, `AbortError`, `RetryError`, and `ConnectionError`.
 
 ```ts
-import { Http, TimeoutError, AbortError, RetryError, ConnectionError  } from 'coming-soon';
+import { Http, TimeoutError, AbortError, RetryError, ConnectionError  } from '@brielov/http';
 
 const response = await Http.get('https://api.example.com/data').response();
 
