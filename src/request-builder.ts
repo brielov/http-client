@@ -87,7 +87,7 @@ export class RequestBuilder {
 			this.#body = value;
 			this.#headers.set(
 				"content-type",
-				"application/x-www-form-urlencoded;charset=UTF-8",
+				"application/x-www-form-urlencoded;charset=utf-8",
 			);
 		} else if (typeof value === "string") {
 			this.#body = value;

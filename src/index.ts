@@ -3,6 +3,7 @@ import {
 	RequestBuilder,
 	type RequestBuilderWithoutBody,
 } from "./request-builder";
+import { buildPath } from "./util";
 
 export * from "./http-error";
 
@@ -134,29 +135,4 @@ export class Http {
 	): RequestBuilderWithoutBody {
 		return Http.shared.delete(...pathnames);
 	}
-}
-
-/**
- * Helper function to build a path from an array of segments.
- * @param {readonly (string | number)[]} segments - The path segments.
- * @returns {string} The constructed path.
- */
-function buildPath(segments: readonly (string | number)[]): string {
-	const pathname: string[] = [];
-	for (let seg of segments) {
-		if (typeof seg === "number") {
-			pathname.push(String(seg));
-			continue;
-		}
-		seg = seg.trim();
-		if (seg === "") continue;
-		if (seg.startsWith("/")) {
-			seg = seg.slice(1);
-		}
-		if (seg.endsWith("/")) {
-			seg = seg.slice(0, -1);
-		}
-		pathname.push(seg);
-	}
-	return pathname.join("/");
 }
